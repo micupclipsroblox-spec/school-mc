@@ -1,101 +1,407 @@
-from pathlib import Path
-
-html = '''<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Minecraft Web</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0d0e10;color:#eee;font-family:Arial,Helvetica,sans-serif}
-#launcher{height:100%;overflow:auto}header{height:58px;border-bottom:1px solid #25272c;background:#111214;display:flex;align-items:center;padding:0 24px}
-.logo{font-weight:700;font-size:18px}.logo span{color:#8275e8}main{width:min(900px,calc(100% - 28px));margin:55px auto}
-h1{font-size:30px;margin:0 0 7px}.sub{color:#777d86;margin:0 0 28px}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.card{border:1px solid #292c32;background:#15171a;border-radius:9px;padding:18px}.card h2{font-size:16px;margin:0 0 6px}.card p{color:#7f858e;font-size:13px;min-height:34px;line-height:1.45}
-button{cursor:pointer}.play{border:0;background:#6557d8;color:white;border-radius:6px;padding:9px 15px;font-weight:700}.play:hover{background:#7567e6}
-#picker{position:fixed;inset:0;background:rgba(0,0,0,.78);display:grid;place-items:center;padding:20px;z-index:10}#picker[hidden]{display:none}
-.modal{width:min(430px,100%);background:#15171a;border:1px solid #30333a;border-radius:10px;padding:22px;position:relative}.modal h2{margin:0 0 7px}.modal p{color:#858a92;font-size:13px;line-height:1.45}
-.close{position:absolute;right:10px;top:7px;background:none;border:0;color:#777;font-size:25px}.versions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:17px}
-.v{background:#1d2024;border:1px solid #30333a;color:#eee;border-radius:6px;padding:12px;font-weight:700}.v:hover{border-color:#6256a9}
-.note{margin-top:14px;padding:10px;background:#101114;border-radius:6px;color:#747a83;font-size:12px;line-height:1.5}
-#game{position:fixed;inset:0;background:#000;display:none;z-index:20}#game iframe{width:100%;height:100%;border:0}
-.gamebar{position:absolute;z-index:2;top:10px;left:10px;opacity:.2;transition:opacity .15s}.gamebar:hover{opacity:1}.gamebar button{background:#17191d;border:1px solid #454950;color:#fff;border-radius:6px;padding:8px 12px}
-@media(max-width:600px){.cards{grid-template-columns:1fr}main{margin:30px auto}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Client</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0b0b0d;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    /* VERSION SCREEN */
+
+    #launcher {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 55px 7%;
+      background:
+        radial-gradient(circle at top left, #25252b 0, transparent 35%),
+        linear-gradient(135deg, #0b0b0d, #111116);
+    }
+
+    .top {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .logo {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .sub {
+      margin-top: 8px;
+      color: #888;
+      font-size: 15px;
+    }
+
+    .versions {
+      max-width: 1100px;
+      margin: 35px auto 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 15px;
+    }
+
+    .version {
+      background: #151519;
+      border: 1px solid #29292f;
+      border-radius: 12px;
+      padding: 22px;
+      cursor: pointer;
+      transition: .15s ease;
+    }
+
+    .version:hover {
+      transform: translateY(-3px);
+      border-color: #55555e;
+      background: #1a1a1f;
+    }
+
+    .version h2 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    .version p {
+      margin: 0;
+      color: #85858d;
+      font-size: 13px;
+    }
+
+    .launch {
+      margin-top: 18px;
+      width: 100%;
+      padding: 12px;
+      border: 0;
+      border-radius: 8px;
+      background: #fff;
+      color: #111;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .launch:hover {
+      background: #ddd;
+    }
+
+    /* GAME */
+
+    #game {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: #000;
+    }
+
+    #client {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #000;
+    }
+
+    .bar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      height: 44px;
+      z-index: 20;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 0 10px 0 15px;
+
+      background: rgba(15,15,18,.92);
+      border: 1px solid #303038;
+      border-radius: 9px;
+
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    #game:hover .bar {
+      opacity: 1;
+    }
+
+    .bar-title {
+      font-size: 13px;
+      color: #aaa;
+    }
+
+    .bar button {
+      border: 0;
+      border-radius: 6px;
+      padding: 7px 11px;
+      background: #24242a;
+      color: white;
+      cursor: pointer;
+    }
+
+    .bar button:hover {
+      background: #33333b;
+    }
+
+    /* ERROR */
+
+    #error {
+      display: none;
+      max-width: 700px;
+      margin: 100px auto;
+      padding: 25px;
+      background: #17171b;
+      border: 1px solid #38383f;
+      border-radius: 12px;
+    }
+
+    #error h2 {
+      margin-top: 0;
+    }
+
+    #error p {
+      color: #aaa;
+      line-height: 1.5;
+    }
+
+    code {
+      background: #09090b;
+      padding: 3px 6px;
+      border-radius: 5px;
+    }
+
+    @media (max-width: 600px) {
+      #launcher {
+        padding: 35px 20px;
+      }
+
+      .logo {
+        font-size: 28px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div id="launcher">
-<header><div class="logo">Minecraft<span> Web</span></div></header>
-<main>
-<h1>Play Minecraft</h1><p class="sub">Choose a version to start your browser client.</p>
-<div class="cards">
-<article class="card"><h2>Java 1.8.9</h2><p>Classic browser-client slot.</p><button class="play">Play</button></article>
-<article class="card"><h2>Java 1.12.2</h2><p>Browser-client slot for 1.12.2.</p><button class="play">Play</button></article>
-<article class="card"><h2>Java 1.20.4</h2><p>Browser-client slot for 1.20.4.</p><button class="play">Play</button></article>
-<article class="card"><h2>Java 1.21.x</h2><p>Browser-client slot for 1.21.x.</p><button class="play">Play</button></article>
-</div></main></div>
 
-<div id="picker" hidden><div class="modal"><button class="close" id="closePicker">×</button>
-<h2>Choose version</h2><p>Select the version you want to open.</p>
-<div class="versions">
-<button class="v" data-version="1.8.9">1.8.9</button><button class="v" data-version="1.12.2">1.12.2</button>
-<button class="v" data-version="1.20.4">1.20.4</button><button class="v" data-version="1.21.x">1.21.x</button>
-</div><div class="note" id="note">No browser client is configured yet.</div></div></div>
+  <!-- VERSION SELECTOR -->
 
-<div id="game"><div class="gamebar"><button id="exit">← Exit</button></div><iframe id="frame" allow="fullscreen; autoplay; gamepad"></iframe></div>
+  <main id="launcher">
 
-<script>
-/*
-  IMPORTANT:
-  This is the GitHub Pages shell. To make the game actually run,
-  CLIENTS must point to an authorized browser-client application.
+    <div class="top">
+      <div class="logo">Minecraft Client</div>
+      <div class="sub">Select a version to continue</div>
+    </div>
 
-  For a client stored in the same GitHub repository, use for example:
-    "1.8.9": "./client-1.8.9/"
+    <section class="versions">
 
-  For an external client:
-    "1.8.9": "https://example.com/client/"
-*/
-const CLIENTS={
-  "1.8.9":"",
-  "1.12.2":"",
-  "1.20.4":"",
-  "1.21.x":""
-};
+      <!--
+        Change the paths below to where your ACTUAL
+        browser Minecraft client files are located.
+      -->
 
-const picker=document.getElementById("picker");
-const note=document.getElementById("note");
-const game=document.getElementById("game");
-const frame=document.getElementById("frame");
+      <div class="version">
+        <h2>1.8.9</h2>
+        <p>Classic client</p>
 
-document.querySelectorAll(".play").forEach(b=>b.onclick=()=>picker.hidden=false);
-document.querySelectorAll(".v").forEach(b=>b.onclick=()=>launch(b.dataset.version));
-document.getElementById("closePicker").onclick=()=>picker.hidden=true;
-picker.onclick=e=>{if(e.target===picker)picker.hidden=true};
+        <button
+          class="launch"
+          onclick="launch('1.8.9', 'client-1.8.9/index.html')">
+          Launch
+        </button>
+      </div>
 
-function launch(version){
-  const target=CLIENTS[version];
-  if(!target){
-    note.textContent="No browser client is configured for "+version+". Add its URL to CLIENTS in this file.";
-    return;
-  }
-  let url;
-  try{url=new URL(target,location.href)}catch{note.textContent="The configured client URL is invalid.";return}
-  if(url.protocol!=="https:"&&url.protocol!=="http:"){
-    note.textContent="The client must use HTTP(S).";return;
-  }
-  picker.hidden=true;
-  frame.src=url.href;
-  game.style.display="block";
-}
-document.getElementById("exit").onclick=()=>{
-  frame.src="about:blank";
-  game.style.display="none";
-};
-</script>
+      <div class="version">
+        <h2>1.12.2</h2>
+        <p>Classic / modded era</p>
+
+        <button
+          class="launch"
+          onclick="launch('1.12.2', 'client-1.12.2/index.html')">
+          Launch
+        </button>
+      </div>
+
+      <div class="version">
+        <h2>1.20.4</h2>
+        <p>Modern client</p>
+
+        <button
+          class="launch"
+          onclick="launch('1.20.4', 'client-1.20.4/index.html')">
+          Launch
+        </button>
+      </div>
+
+      <div class="version">
+        <h2>1.21</h2>
+        <p>Latest client</p>
+
+        <button
+          class="launch"
+          onclick="launch('1.21', 'client-1.21/index.html')">
+          Launch
+        </button>
+      </div>
+
+    </section>
+
+    <div id="error">
+      <h2>Client not found</h2>
+
+      <p id="errorText"></p>
+
+      <button class="launch" onclick="back()">
+        Back
+      </button>
+    </div>
+
+  </main>
+
+
+  <!-- GAME -->
+
+  <section id="game">
+
+    <div class="bar">
+      <div class="bar-title" id="gameTitle">
+        Minecraft
+      </div>
+
+      <div>
+        <button onclick="fullscreen()">
+          Fullscreen
+        </button>
+
+        <button onclick="back()">
+          Exit
+        </button>
+      </div>
+    </div>
+
+    <iframe
+      id="client"
+      allow="fullscreen; gamepad; autoplay"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock">
+    </iframe>
+
+  </section>
+
+
+  <script>
+
+    const launcher = document.getElementById("launcher");
+    const game = document.getElementById("game");
+    const client = document.getElementById("client");
+    const gameTitle = document.getElementById("gameTitle");
+    const error = document.getElementById("error");
+    const errorText = document.getElementById("errorText");
+
+
+    function launch(version, path) {
+
+      error.style.display = "none";
+
+      /*
+       * GitHub Pages serves files relative to your repository.
+       *
+       * Example:
+       *
+       * your-repo/
+       *   index.html
+       *
+       *   client-1.8.9/
+       *     index.html
+       *
+       *   client-1.20.4/
+       *     index.html
+       */
+
+      const url = new URL(path, window.location.href).href;
+
+      gameTitle.textContent = "Minecraft " + version;
+
+      client.src = url;
+
+      launcher.style.display = "none";
+      game.style.display = "block";
+
+      document.body.style.overflow = "hidden";
+
+      client.onerror = function () {
+        showError(
+          "The browser client could not be loaded from:<br><br>" +
+          "<code>" + url + "</code>"
+        );
+      };
+    }
+
+
+    function showError(message) {
+      game.style.display = "none";
+      launcher.style.display = "block";
+
+      error.style.display = "block";
+      errorText.innerHTML = message;
+    }
+
+
+    function back() {
+
+      client.src = "";
+
+      game.style.display = "none";
+      launcher.style.display = "block";
+
+      error.style.display = "none";
+
+      document.body.style.overflow = "auto";
+    }
+
+
+    function fullscreen() {
+
+      if (game.requestFullscreen) {
+        game.requestFullscreen();
+      }
+      else if (client.requestFullscreen) {
+        client.requestFullscreen();
+      }
+    }
+
+
+    /*
+     * If somebody opens a client path directly,
+     * don't leave an empty iframe behind.
+     */
+
+    window.addEventListener("message", function(event) {
+      console.log("Client message:", event.data);
+    });
+
+  </script>
+
 </body>
-</html>'''
-
-path=Path("/mnt/data/index.html")
-path.write_text(html,encoding="utf-8")
-print(path)
+</html>
